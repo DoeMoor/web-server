@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 )
 
 func ValidateChirp(w http.ResponseWriter, r *http.Request) {
@@ -16,7 +17,8 @@ func ValidateChirp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type chirpResponse struct {
-		Valid bool `json:"valid"`	
+		Valid     bool   `json:"valid"`
+		CleanBody string `json:"cleaned_body"`
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -45,11 +47,32 @@ func ValidateChirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := json.Marshal(chirpResponse{Valid: true })
+	clear := clearBody(chirpReq.Body)
+
+	data, err := json.Marshal(chirpResponse{Valid: true, CleanBody: clear})
 	if err != nil {
 		log.Printf("error marshal error response :%v", err)
 		return
 	}
 	w.WriteHeader(200)
 	w.Write(data)
+}
+
+var restrictedWords []string = []string{
+	"kerfuffle",
+	"sharbert",
+	"fornax",
+}
+
+func clearBody(body string) string {
+	splitBody := strings.Split(body, " ")
+	for bodyIndex, bodyWord := range splitBody {
+		for _, restrictedWord := range restrictedWords {
+			if !strings.Contains(strings.ToLower(bodyWord), restrictedWord) {
+				continue
+			}
+			splitBody[bodyIndex] = "****"
+		}
+	}
+	return strings.Join(splitBody, " ")
 }

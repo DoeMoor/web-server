@@ -51,6 +51,3 @@ func clearTerminal() {
 	cmd.Stdout = os.Stdout
 	cmd.Run()
 }
-
-
-
