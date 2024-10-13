@@ -5,5 +5,7 @@ import "net/http"
 type apiHandler struct {
 }
 
-func (apiHandler) ServeHTTP(http.ResponseWriter, *http.Request){}
+func (apiHandler) ServeHTTP(http.ResponseWriter, *http.Request){
+}
+
 
