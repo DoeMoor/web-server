@@ -1,8 +1,6 @@
 package main
 
 import (
-	// "fmt"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -10,11 +8,10 @@ import (
 	"runtime"
 	"sync/atomic"
 	"time"
+	"github.com/doemoor/wed-server/api"
 )
 
-type apiConfig struct {
-	fileserverHits atomic.Int32
-}
+
 
 func main() {
 	mux := http.NewServeMux()
@@ -26,15 +23,15 @@ func main() {
 		IdleTimeout:  2 * time.Second,
 	}
 	
-	var apiCfg = &apiConfig{
-		fileserverHits: atomic.Int32{},
+	var apiCfg = &api.ApiConfig{
+		FileserverHits: atomic.Int32{},
 	}
 
 	
-	mux.Handle("GET /app/", apiCfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(".")))))
-	mux.HandleFunc("GET /healthz", healthz)
-	mux.HandleFunc("GET /metrics", apiCfg.metricsHandler)
-	mux.HandleFunc("POST /reset", apiCfg.metricsReset)
+	mux.Handle("GET /app/", apiCfg.MiddlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(".")))))
+	mux.HandleFunc("GET /api/healthz", api.Healthz)
+	mux.HandleFunc("GET /admin/metrics", apiCfg.MetricsHandler)
+	mux.HandleFunc("POST /admin/reset", apiCfg.MetricsReset)
 	
 	
 	clearTerminal()
@@ -54,21 +51,5 @@ func clearTerminal() {
 	cmd.Run()
 }
 
-func (cfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cfg.fileserverHits.Add(1)
-		fmt.Println("Middleware add", cfg.fileserverHits.Load())
-		next.ServeHTTP(w, r)
-	})
-}
-
-func (cfg *apiConfig) metricsHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.Header().Set("Cache-Control","no-cache")
-	w.WriteHeader(http.StatusOK)
-	rest := fmt.Sprintf("Hits: %v", cfg.fileserverHits.Load())
-	// rest := fmt.Sprintln("Hits: ")
-	w.Write([]byte(rest))
-}
 
 
