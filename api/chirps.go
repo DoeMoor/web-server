@@ -86,13 +86,45 @@ func (cfg *ApiConfig) CreateChirp(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-var restrictedWords []string = []string{
-	"kerfuffle",
-	"sharbert",
-	"fornax",
+func (cfg *ApiConfig) GetChirps(w http.ResponseWriter, r *http.Request) {
+	type chirpResponse struct {
+		Id        string    `json:"id"`
+		CreatedAt time.Time `json:"created_at"`
+		UpdatedAt time.Time `json:"updated_at"`
+		Body      string    `json:"body"`
+		UserId    string    `json:"user_id"`
+	}
+
+
+	chirpsArray, err := cfg.DbQueries.GetAllChirps(r.Context())
+	if err != nil {
+		log.Printf("error fetching chirps from db :%v", err)
+		responseWithError(w, 500, "Error fetching chirps")
+		return
+	}
+	var chirps []chirpResponse
+	for _, chirp := range chirpsArray {
+		chirps = append(chirps, chirpResponse{
+			Id:        chirp.ID.String(),
+			CreatedAt: chirp.CreatedAt,
+			UpdatedAt: chirp.UpdatedAt,
+			Body:      chirp.Body,
+			UserId:    chirp.UserID.String(),
+		})
+	}
+	err = responseWithJson(w, 200, chirps)
+	if err != nil {
+		log.Printf("error encoding response :%v", err)
+		return
+	}
 }
 
 func clearBody(body string) string {
+	var restrictedWords []string = []string{
+		"kerfuffle",
+		"sharbert",
+		"fornax",
+	}
 	splitBody := strings.Split(body, " ")
 	for bodyIndex, bodyWord := range splitBody {
 		for _, restrictedWord := range restrictedWords {
