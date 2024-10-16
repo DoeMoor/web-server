@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 	"os"
@@ -8,12 +9,28 @@ import (
 	"runtime"
 	"sync/atomic"
 	"time"
+
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
+
 	"github.com/doemoor/wed-server/api"
+	"github.com/doemoor/wed-server/internal/database"
 )
 
 
 
 func main() {
+	
+	godotenv.Load()
+
+	dbURL := os.Getenv("DB_URL")
+
+	db, err := sql.Open("postgres", dbURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
 	mux := http.NewServeMux()
 	serverStruct := &http.Server{
 		Addr:         ":8080",
@@ -25,6 +42,7 @@ func main() {
 	
 	var apiCfg = &api.ApiConfig{
 		FileserverHits: atomic.Int32{},
+		DbQueries: database.New(db),
 	}
 
 	
@@ -33,7 +51,7 @@ func main() {
 	mux.HandleFunc("GET /admin/metrics", apiCfg.MetricsHandler)
 	mux.HandleFunc("POST /admin/reset", apiCfg.MetricsReset)
 	mux.HandleFunc("POST /api/validate_chirp", api.ValidateChirp)
-	
+	mux.HandleFunc("POST /api/users", apiCfg.CreateUser)
 	
 	clearTerminal()
 	log.Printf("Serving on port: %s\n", serverStruct.Addr)

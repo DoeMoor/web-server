@@ -3,12 +3,9 @@ package api
 import (
 	"fmt"
 	"net/http"
-	"sync/atomic"
 )
 
-type ApiConfig struct {
-	FileserverHits atomic.Int32
-}
+
 
 func (cfg *ApiConfig) MiddlewareMetricsInc(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
