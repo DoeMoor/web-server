@@ -16,3 +16,11 @@ FROM
 	CHIRPS
 ORDER BY
 	CREATED_AT ASC;
+
+-- name: GetChirp :one
+SELECT
+  *
+FROM
+  CHIRPS
+WHERE
+  ID = $1;

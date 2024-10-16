@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -98,6 +99,7 @@ func (cfg *ApiConfig) GetChirps(w http.ResponseWriter, r *http.Request) {
 
 	chirpsArray, err := cfg.DbQueries.GetAllChirps(r.Context())
 	if err != nil {
+		log.SetOutput(os.Stderr)
 		log.Printf("error fetching chirps from db :%v", err)
 		responseWithError(w, 500, "Error fetching chirps")
 		return
@@ -118,6 +120,58 @@ func (cfg *ApiConfig) GetChirps(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (cfg *ApiConfig) GetChirp(w http.ResponseWriter, r *http.Request) {
+	type chirpResponse struct {
+		Id        string    `json:"id"`
+		CreatedAt time.Time `json:"created_at"`
+		UpdatedAt time.Time `json:"updated_at"`
+		Body      string    `json:"body"`
+		UserId    string    `json:"user_id"`
+	}
+
+
+	chirpID, err := uuid.Parse(r.PathValue("id")) 
+	if err != nil {
+		err := responseWithError(w, 400, "Invalid chirp id")
+		if err != nil {
+			log.Printf("response error :%v", err)
+			return
+		}
+		return
+	}
+	chirp, err := cfg.DbQueries.GetChirp(r.Context(), chirpID)
+	if err != nil && err.Error() == "sql: no rows in result set" {
+		err := responseWithError(w, 404, "Chirp not found")
+		if err != nil {
+			log.Printf("response error :%v", err)
+			return
+		}
+		return
+	}
+	if err != nil {
+		err := responseWithError(w, 500, "Error fetching chirp")
+		if err != nil {
+			log.Printf("response error :%v", err)
+			return
+		}
+		return
+	}
+
+	err = responseWithJson(w, 200, chirpResponse{
+		Id:        chirp.ID.String(),
+		CreatedAt: chirp.CreatedAt,
+		UpdatedAt: chirp.UpdatedAt,
+		Body:      chirp.Body,
+		UserId:    chirp.UserID.String(),
+	})
+	if err != nil {
+		log.Printf("error encoding response :%v", err)
+		return
+	}
+}
+
+
 
 func clearBody(body string) string {
 	var restrictedWords []string = []string{
