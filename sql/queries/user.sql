@@ -5,7 +5,6 @@ VALUES (
     now(),
     now(),
     $1
-    
 )
 RETURNING *;
 

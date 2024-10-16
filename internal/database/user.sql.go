@@ -16,7 +16,6 @@ VALUES (
     now(),
     now(),
     $1
-    
 )
 RETURNING id, created_at, updated_at, email
 `
@@ -37,7 +36,7 @@ const deleteUsers = `-- name: deleteUsers :exec
 DELETE FROM users
 `
 
-func (q *Queries) deleteUsers(ctx context.Context) error {
+func (q *Queries) DeleteUsers(ctx context.Context) error {
 	_, err := q.db.ExecContext(ctx, deleteUsers)
 	return err
 }
