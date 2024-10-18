@@ -1,3 +1,4 @@
 out
 _build
 .env
+.idea

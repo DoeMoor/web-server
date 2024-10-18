@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"sync/atomic"
 
@@ -21,7 +20,6 @@ func responseWithError(w http.ResponseWriter, code int, message string) error{
 func responseWithJson(w http.ResponseWriter, code int, payload interface{}) error {
 	response, err := json.Marshal(payload)
 	if err != nil {
-		log.Printf("error encoding response :%v", err)
 		return err
 	}
 	w.Header().Set("Content-Type", "application/json")

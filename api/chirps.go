@@ -2,9 +2,7 @@ package api
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -32,9 +30,8 @@ func (cfg *ApiConfig) CreateChirp(w http.ResponseWriter, r *http.Request) {
 	chirpReq := chirpRequest{}
 	err := decoder.Decode(&chirpReq)
 	if err != nil {
-		err := responseWithError(w, 500, "Invalid JSON")
+		err := responseWithError(w, 400, "Invalid JSON")
 		if err != nil {
-			log.Printf("error marshal error response :%v", err)
 			return
 		}
 		return
@@ -43,7 +40,6 @@ func (cfg *ApiConfig) CreateChirp(w http.ResponseWriter, r *http.Request) {
 	if len(chirpReq.Body) > 140 {
 		err := responseWithError(w, 400, "Chirp too long")
 		if err != nil {
-			log.Printf("response error :%v", err)
 			return
 		}
 		return
@@ -54,7 +50,6 @@ func (cfg *ApiConfig) CreateChirp(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		err := responseWithError(w, 400, "Invalid user id")
 		if err != nil {
-			log.Printf("response error :%v", err)
 			return
 		}
 		return
@@ -69,7 +64,6 @@ func (cfg *ApiConfig) CreateChirp(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		err := responseWithError(w, 500, "Error creating chirp")
 		if err != nil {
-			log.Printf("response error :%v", err)
 			return
 		}
 		return
@@ -82,7 +76,6 @@ func (cfg *ApiConfig) CreateChirp(w http.ResponseWriter, r *http.Request) {
 		UserId:    chirpDb.UserID.String(),
 	})
 	if err != nil {
-		log.Printf("error encoding response :%v", err)
 		return
 	}
 }
@@ -99,8 +92,6 @@ func (cfg *ApiConfig) GetChirps(w http.ResponseWriter, r *http.Request) {
 
 	chirpsArray, err := cfg.DbQueries.GetAllChirps(r.Context())
 	if err != nil {
-		log.SetOutput(os.Stderr)
-		log.Printf("error fetching chirps from db :%v", err)
 		responseWithError(w, 500, "Error fetching chirps")
 		return
 	}
@@ -116,7 +107,6 @@ func (cfg *ApiConfig) GetChirps(w http.ResponseWriter, r *http.Request) {
 	}
 	err = responseWithJson(w, 200, chirps)
 	if err != nil {
-		log.Printf("error encoding response :%v", err)
 		return
 	}
 }
@@ -135,7 +125,6 @@ func (cfg *ApiConfig) GetChirp(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		err := responseWithError(w, 400, "Invalid chirp id")
 		if err != nil {
-			log.Printf("response error :%v", err)
 			return
 		}
 		return
@@ -144,7 +133,6 @@ func (cfg *ApiConfig) GetChirp(w http.ResponseWriter, r *http.Request) {
 	if err != nil && err.Error() == "sql: no rows in result set" {
 		err := responseWithError(w, 404, "Chirp not found")
 		if err != nil {
-			log.Printf("response error :%v", err)
 			return
 		}
 		return
@@ -152,7 +140,6 @@ func (cfg *ApiConfig) GetChirp(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		err := responseWithError(w, 500, "Error fetching chirp")
 		if err != nil {
-			log.Printf("response error :%v", err)
 			return
 		}
 		return
@@ -166,7 +153,6 @@ func (cfg *ApiConfig) GetChirp(w http.ResponseWriter, r *http.Request) {
 		UserId:    chirp.UserID.String(),
 	})
 	if err != nil {
-		log.Printf("error encoding response :%v", err)
 		return
 	}
 }

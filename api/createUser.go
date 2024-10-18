@@ -3,13 +3,17 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
+	"github.com/doemoor/wed-server/internal/auth"
+	"github.com/doemoor/wed-server/internal/database"
 	// "github.com/doemoor/wed-server/internal/database"
 )
 
 func (cfg *ApiConfig) CreateUser(w http.ResponseWriter, r *http.Request) {
 	type userRequest struct {
+		Password string `json:"password"`
 		Email string `json:"email"`
 	}
 
@@ -26,12 +30,27 @@ func (cfg *ApiConfig) CreateUser(w http.ResponseWriter, r *http.Request) {
 	userReq := userRequest{}
 	err := decoder.Decode(&userReq)
 	if err != nil {
-		responseWithError(w, 500, "Invalid JSON")
+		responseWithError(w, 400, "Invalid JSON")
 		return
 	}
 
-	userDb, err := cfg.DbQueries.CreateUser(r.Context(), userReq.Email)
+	HashedPassword, err := auth.HashPassword(userReq.Password)
 	if err != nil {
+		responseWithError(w, 500, "Error hashing password")
+		return
+	}
+
+	userParams := database.CreateUserParams{
+		HashedPassword: HashedPassword,
+		Email: userReq.Email,
+	}
+
+	userDb, err := cfg.DbQueries.CreateUser(r.Context(), userParams)
+	if err != nil {
+		if strings.Contains(err.Error(), "duplicate key") {
+			responseWithError(w, 409, "User already exist: " + userReq.Email )
+			return
+		}
 		responseWithError(w, 500, "Error creating user")
 		return
 	}
