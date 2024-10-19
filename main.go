@@ -13,8 +13,8 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 
-	"github.com/doemoor/wed-server/api"
-	"github.com/doemoor/wed-server/internal/database"
+	"github.com/doemoor/web-server/api"
+	"github.com/doemoor/web-server/internal/database"
 )
 
 
@@ -43,6 +43,7 @@ func main() {
 	var apiCfg = &api.ApiConfig{
 		FileserverHits: atomic.Int32{},
 		DbQueries: database.New(db),
+		Secret: os.Getenv("SECRET"),
 	}
 
 	
@@ -50,13 +51,15 @@ func main() {
 	mux.HandleFunc("GET /api/healthz", api.Healthz)
 	mux.HandleFunc("GET /admin/metrics", apiCfg.MetricsHandler)
 	mux.HandleFunc("POST /admin/reset", apiCfg.MetricsReset)
-	mux.HandleFunc("POST /api/login", apiCfg.Login)
 
 	mux.HandleFunc("POST /api/chirps", apiCfg.CreateChirp)
 	mux.HandleFunc("GET /api/chirps", apiCfg.GetChirps)
 	mux.HandleFunc("GET /api/chirps/{id}", apiCfg.GetChirp)
-
+	
+	mux.HandleFunc("POST /api/login", apiCfg.Login)
 	mux.HandleFunc("POST /api/users", apiCfg.CreateUser)
+	mux.HandleFunc("POST /api/refresh", apiCfg.RefreshUserToken)
+	mux.HandleFunc("POST /api/revoke", apiCfg.RevokeUserRefreshToken)
 	
 	clearTerminal()
 	log.Printf("Serving on port: %s\n", serverStruct.Addr)
