@@ -19,3 +19,18 @@ WHERE id = $1;
 
 -- name: DeleteUsers :exec
 DELETE FROM users;
+
+-- name: UpdateUser :one
+UPDATE users
+SET updated_at = now(),
+    email = $2,
+    hashed_password = $3
+WHERE id = $1
+RETURNING *;
+
+-- name: IsUserIdExists :one
+SELECT EXISTS (
+    SELECT id
+    FROM users
+    WHERE id = $1
+);

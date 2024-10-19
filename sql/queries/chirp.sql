@@ -24,3 +24,20 @@ FROM
   CHIRPS
 WHERE
   ID = $1;
+
+-- name: DeleteChirp :exec
+DELETE FROM
+  CHIRPS
+WHERE
+  ID = $1;
+
+-- name: IsChirpExists :one
+SELECT
+  EXISTS (
+    SELECT
+      id
+    FROM
+      CHIRPS
+    WHERE
+      ID = $1
+  );

@@ -55,11 +55,14 @@ func main() {
 	mux.HandleFunc("POST /api/chirps", apiCfg.CreateChirp)
 	mux.HandleFunc("GET /api/chirps", apiCfg.GetChirps)
 	mux.HandleFunc("GET /api/chirps/{id}", apiCfg.GetChirp)
+	mux.HandleFunc("DELETE /api/chirps/{id}", apiCfg.DeleteChirp)
 	
 	mux.HandleFunc("POST /api/login", apiCfg.Login)
-	mux.HandleFunc("POST /api/users", apiCfg.CreateUser)
 	mux.HandleFunc("POST /api/refresh", apiCfg.RefreshUserToken)
 	mux.HandleFunc("POST /api/revoke", apiCfg.RevokeUserRefreshToken)
+	
+	mux.HandleFunc("POST /api/users", apiCfg.CreateUser)
+	mux.HandleFunc("PUT /api/users", apiCfg.UpdateUser)
 	
 	clearTerminal()
 	log.Printf("Serving on port: %s\n", serverStruct.Addr)
