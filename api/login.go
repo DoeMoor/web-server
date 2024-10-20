@@ -24,6 +24,7 @@ func (cfg *ApiConfig) Login(w http.ResponseWriter, r *http.Request) {
 		Email        string    `json:"email"`
 		Token        string    `json:"token"`
 		RefreshToken string    `json:"refresh_token"`
+		IsChirpyRed  bool      `json:"is_chirpy_red"`
 	}
 
 	// read request body
@@ -95,6 +96,7 @@ func (cfg *ApiConfig) Login(w http.ResponseWriter, r *http.Request) {
 		Email:        userFromDB.Email,
 		Token:        tokenString,
 		RefreshToken: tokenDBString,
+		IsChirpyRed:  userFromDB.IsChirpyRed,
 	}
 	responseWithJson(w, 200, userRes)
 }

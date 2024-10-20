@@ -18,10 +18,11 @@ func (cfg *ApiConfig) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type userResponse struct {
-		Id        string    `json:"id"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at"`
-		Email     string    `json:"email"`
+		Id          string    `json:"id"`
+		CreatedAt   time.Time `json:"created_at"`
+		UpdatedAt   time.Time `json:"updated_at"`
+		Email       string    `json:"email"`
+		IsChirpyRed bool      `json:"is_chirpy_red"`
 	}
 
 	// read request body
@@ -61,10 +62,11 @@ func (cfg *ApiConfig) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userResp := userResponse{
-		Id:        userDb.ID.String(),
-		CreatedAt: userDb.CreatedAt,
-		UpdatedAt: userDb.UpdatedAt,
-		Email:     userDb.Email,
+		Id:          userDb.ID.String(),
+		CreatedAt:   userDb.CreatedAt,
+		UpdatedAt:   userDb.UpdatedAt,
+		Email:       userDb.Email,
+		IsChirpyRed: userDb.IsChirpyRed,
 	}
 
 	responseWithJson(w, 201, userResp)

@@ -9,8 +9,8 @@ CREATE TABLE chirps (
   PRIMARY KEY (id)
 )
 -- +goose StatementEnd
-
 -- +goose Down
 -- +goose StatementBegin
 drop table chirps;
+
 -- +goose StatementEnd

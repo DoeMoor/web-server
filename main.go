@@ -17,10 +17,8 @@ import (
 	"github.com/doemoor/web-server/internal/database"
 )
 
-
-
 func main() {
-	
+
 	godotenv.Load()
 
 	dbURL := os.Getenv("DB_URL")
@@ -39,14 +37,13 @@ func main() {
 		WriteTimeout: 2 * time.Second,
 		IdleTimeout:  2 * time.Second,
 	}
-	
+
 	var apiCfg = &api.ApiConfig{
 		FileserverHits: atomic.Int32{},
-		DbQueries: database.New(db),
-		Secret: os.Getenv("SECRET"),
+		DbQueries:      database.New(db),
+		Secret:         os.Getenv("SECRET"),
 	}
 
-	
 	mux.Handle("GET /app/", apiCfg.MiddlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir("./app")))))
 	mux.HandleFunc("GET /api/healthz", api.Healthz)
 	mux.HandleFunc("GET /admin/metrics", apiCfg.MetricsHandler)
@@ -56,14 +53,16 @@ func main() {
 	mux.HandleFunc("GET /api/chirps", apiCfg.GetChirps)
 	mux.HandleFunc("GET /api/chirps/{id}", apiCfg.GetChirp)
 	mux.HandleFunc("DELETE /api/chirps/{id}", apiCfg.DeleteChirp)
-	
+
 	mux.HandleFunc("POST /api/login", apiCfg.Login)
 	mux.HandleFunc("POST /api/refresh", apiCfg.RefreshUserToken)
 	mux.HandleFunc("POST /api/revoke", apiCfg.RevokeUserRefreshToken)
-	
+
 	mux.HandleFunc("POST /api/users", apiCfg.CreateUser)
 	mux.HandleFunc("PUT /api/users", apiCfg.UpdateUser)
-	
+
+	mux.HandleFunc("POST /api/polka/webhooks", apiCfg.PolkaWebhook)
+
 	clearTerminal()
 	log.Printf("Serving on port: %s\n", serverStruct.Addr)
 	log.Fatal(serverStruct.ListenAndServe())

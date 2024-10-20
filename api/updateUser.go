@@ -11,7 +11,6 @@ import (
 	"github.com/doemoor/web-server/internal/database"
 )
 
-
 func (cfg *ApiConfig) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	token, err := auth.GetBearerToken(r.Header)
@@ -41,7 +40,7 @@ func (cfg *ApiConfig) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate the token 
+	// Validate the token
 	userFromToken, err := auth.ValidateJWT(token, cfg.Secret)
 	if err != nil {
 		if strings.Contains(err.Error(), "expired") {
@@ -54,7 +53,7 @@ func (cfg *ApiConfig) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the user from the database
-  if ok, _ := cfg.DbQueries.IsUserIdExists(r.Context(), userFromToken); !ok {
+	if ok, _ := cfg.DbQueries.IsUserIdExists(r.Context(), userFromToken); !ok {
 		responseWithError(w, http.StatusUnauthorized, "unauthorized")
 		return
 	}
@@ -69,11 +68,11 @@ func (cfg *ApiConfig) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	// Update the user in the database
 	updateUserArgs := database.UpdateUserParams{
 		HashedPassword: newHashedPassword,
-		Email:    userReq.Email,
-		ID:       userFromToken,
+		Email:          userReq.Email,
+		ID:             userFromToken,
 	}
 
-	updatedUser, err := cfg.DbQueries.UpdateUser(r.Context(), updateUserArgs) 
+	updatedUser, err := cfg.DbQueries.UpdateUser(r.Context(), updateUserArgs)
 	if err != nil {
 		log.Println("UpdateUser: error updating user: " + err.Error())
 		responseWithError(w, 500, "server error")
@@ -82,17 +81,19 @@ func (cfg *ApiConfig) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	// Return the updated user
 	type userResponse struct {
-		Id        string    `json:"id"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at"`
-		Email     string    `json:"email"`
+		Id          string    `json:"id"`
+		CreatedAt   time.Time `json:"created_at"`
+		UpdatedAt   time.Time `json:"updated_at"`
+		Email       string    `json:"email"`
+		IsChirpyRed bool      `json:"is_chirpy_red"`
 	}
 
 	userResp := userResponse{
-		Id:        updatedUser.ID.String(),
-		CreatedAt: updatedUser.CreatedAt,
-		UpdatedAt: updatedUser.UpdatedAt,
-		Email:     updatedUser.Email,
+		Id:          updatedUser.ID.String(),
+		CreatedAt:   updatedUser.CreatedAt,
+		UpdatedAt:   updatedUser.UpdatedAt,
+		Email:       updatedUser.Email,
+		IsChirpyRed: updatedUser.IsChirpyRed,
 	}
 
 	responseWithJson(w, 200, userResp)

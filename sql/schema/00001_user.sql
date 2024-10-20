@@ -8,8 +8,8 @@ create table users (
   primary key (id)
 )
 -- +goose StatementEnd
-
 -- +goose Down
 -- +goose StatementBegin
 drop table users;
+
 -- +goose StatementEnd
