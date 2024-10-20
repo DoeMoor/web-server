@@ -13,6 +13,7 @@ type ApiConfig struct {
 	FileserverHits atomic.Int32
 	DbQueries      *database.Queries
 	Secret         string
+	ApiKey         string
 }
 
 func responseWithError(w http.ResponseWriter, code int, message string) error {

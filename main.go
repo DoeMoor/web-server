@@ -42,6 +42,7 @@ func main() {
 		FileserverHits: atomic.Int32{},
 		DbQueries:      database.New(db),
 		Secret:         os.Getenv("SECRET"),
+		ApiKey:         os.Getenv("POLKA_KEY"),
 	}
 
 	mux.Handle("GET /app/", apiCfg.MiddlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir("./app")))))
