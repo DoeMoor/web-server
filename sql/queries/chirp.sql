@@ -12,15 +12,25 @@ SELECT
 FROM
   CHIRPS
 ORDER BY
-  CREATED_AT ASC;
+  created_at asc;
 
--- name: GetChirp :one
+-- name: GetChirpById :one
 SELECT
   *
 FROM
   CHIRPS
 WHERE
   ID = $1;
+
+-- name: GetChirpsByAuthor :many
+SELECT
+  *
+FROM
+  chirps
+WHERE
+  user_id = $1
+ORDER BY
+  created_at asc;
 
 -- name: DeleteChirp :exec
 DELETE FROM CHIRPS

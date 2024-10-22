@@ -38,7 +38,7 @@ func (cfg *ApiConfig) DeleteChirp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get chirp from db
-	chirpFromDB, err := cfg.DbQueries.GetChirp(r.Context(), chirpId)
+	chirpFromDB, err := cfg.DbQueries.GetChirpById(r.Context(), chirpId)
 	if err != nil {
 		if strings.Contains(err.Error(), "no rows in result set") {
 			responseWithError(w, 404, "chirp not found")

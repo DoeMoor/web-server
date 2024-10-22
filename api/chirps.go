@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
 
@@ -76,6 +77,50 @@ func (cfg *ApiConfig) CreateChirp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (cfg *ApiConfig) GetChirps(w http.ResponseWriter, r *http.Request) {
+
+	var authorHeader uuid.UUID
+	var sortHeader string
+	var err error
+
+	
+	if r.URL.Query().Has("author_id") && r.URL.Query().Get("author_id") != "" {
+		authorHeader, err = uuid.Parse(r.URL.Query().Get("author_id"))
+		if err != nil {
+			log.Println("GetChirps: invalid author id: " + err.Error())
+			responseWithError(w, 400, "invalid author id")
+			return
+		}
+	}
+
+	if r.URL.Query().Has("sort") && r.URL.Query().Get("sort") != "" {
+		sortHeader = r.URL.Query().Get("sort")
+	} else {
+		sortHeader = "asc"
+	}
+
+	var chirpsFromDB []database.Chirp
+
+	switch {
+	case authorHeader != uuid.Nil: // author_id is provided
+		chirpsFromDB, err = cfg.DbQueries.GetChirpsByAuthor(r.Context(),authorHeader)
+		if err != nil {
+			log.Println("GetChirps: error fetching chirps: " + err.Error())
+			responseWithError(w, 500, "Error fetching chirps")
+			return
+		}
+	case authorHeader == uuid.Nil: // author_id is not provided
+		chirpsFromDB, err = cfg.DbQueries.GetAllChirps(r.Context())
+		if err != nil {
+			log.Println("GetChirps: error fetching chirps: " + err.Error())
+			responseWithError(w, 500, "Error fetching chirps")
+			return
+		}
+	default:
+		log.Println("GetChirps: wrong params" + r.URL.String())
+		responseWithJson(w, 400, "wrong params")
+		return
+	}
+
 	type chirpResponse struct {
 		Id        string    `json:"id"`
 		CreatedAt time.Time `json:"created_at"`
@@ -84,16 +129,15 @@ func (cfg *ApiConfig) GetChirps(w http.ResponseWriter, r *http.Request) {
 		UserId    string    `json:"user_id"`
 	}
 
-	chirpsArray, err := cfg.DbQueries.GetAllChirps(r.Context())
-	if err != nil {
-		log.Println("GetChirps: error fetching chirps: " + err.Error())
-		responseWithError(w, 500, "Error fetching chirps")
-		return
+	if sortHeader == "desc" {
+		sort.SliceStable(chirpsFromDB, func(i, j int) bool {
+			return chirpsFromDB[i].CreatedAt.After(chirpsFromDB[j].CreatedAt)
+		})
 	}
 
 	var chirps []chirpResponse
 
-	for _, chirp := range chirpsArray {
+	for _, chirp := range chirpsFromDB {
 		chirps = append(chirps, chirpResponse{
 			Id:        chirp.ID.String(),
 			CreatedAt: chirp.CreatedAt,
@@ -122,7 +166,7 @@ func (cfg *ApiConfig) GetChirp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get chirp from db
-	chirp, err := cfg.DbQueries.GetChirp(r.Context(), chirpID)
+	chirp, err := cfg.DbQueries.GetChirpById(r.Context(), chirpID)
 	if err != nil && err.Error() == "sql: no rows in result set" {
 		responseWithError(w, 404, "Chirp not found")
 		return

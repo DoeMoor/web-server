@@ -13,20 +13,18 @@ import (
 )
 
 const createRefreshToken = `-- name: CreateRefreshToken :one
-INSERT INTO refresh_tokens (
+INSERT INTO
+  refresh_tokens (
     token,
     created_at,
     updated_at,
     user_id,
     expires_at
   )
-VALUES (
-    $1,
-    now(),
-    now(),
-    $2,
-    $3
-) RETURNING token
+VALUES
+  ($1, now(), now(), $2, $3)
+RETURNING
+  token
 `
 
 type CreateRefreshTokenParams struct {
@@ -43,9 +41,12 @@ func (q *Queries) CreateRefreshToken(ctx context.Context, arg CreateRefreshToken
 }
 
 const getRefreshToken = `-- name: GetRefreshToken :one
-SELECT token, created_at, updated_at, user_id, expires_at, revoked_at
-FROM refresh_tokens
-WHERE token = $1
+SELECT
+  token, created_at, updated_at, user_id, expires_at, revoked_at
+FROM
+  refresh_tokens
+WHERE
+  token = $1
 `
 
 func (q *Queries) GetRefreshToken(ctx context.Context, token string) (RefreshToken, error) {
@@ -63,9 +64,12 @@ func (q *Queries) GetRefreshToken(ctx context.Context, token string) (RefreshTok
 }
 
 const getUserFromRefreshToken = `-- name: GetUserFromRefreshToken :one
-SELECT user_id
-FROM refresh_tokens
-WHERE token = $1
+SELECT
+  user_id
+FROM
+  refresh_tokens
+WHERE
+  token = $1
 `
 
 func (q *Queries) GetUserFromRefreshToken(ctx context.Context, token string) (uuid.UUID, error) {
@@ -77,8 +81,11 @@ func (q *Queries) GetUserFromRefreshToken(ctx context.Context, token string) (uu
 
 const revokeRefreshToken = `-- name: RevokeRefreshToken :exec
 UPDATE refresh_tokens
-SET revoked_at = now() , updated_at = now()
-WHERE token = $1
+SET
+  revoked_at = now(),
+  updated_at = now()
+WHERE
+  token = $1
 `
 
 func (q *Queries) RevokeRefreshToken(ctx context.Context, token string) error {
